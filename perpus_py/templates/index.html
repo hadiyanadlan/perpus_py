@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perpustakaan Digital</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* Memperbaiki tampilan dropdown di dalam modal */
+        .modal-body .form-select {
+            margin-bottom: 1rem; /* Menjaga jarak antar elemen form */
+        }
+        .modal-body .form-label {
+            margin-bottom: .5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mt-5">
+        <header class="mb-4">
+            <h1 class="display-5">📚 Perpustakaan Digital</h1>
+            <p class="lead">Kelola koleksi buku Anda dengan mudah.</p>
+        </header>
+
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#tambahModal">
+            <i class="bi bi-plus-circle-fill"></i> Tambah Buku Baru
+        </button>
+
+        <div class="card shadow-sm">
+            <div class="card-header">
+                Daftar Buku
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Buku</th>
+                                <th>Pengarang</th>
+                                <th>Jenis</th>
+                                <th>Kategori</th>
+                                <th>Penerbit</th>
+                                <th>Terbit</th>
+                                <th>Rating Usia</th> <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="buku-table-body">
+                            {% for buku in daftar_buku %}
+                            <tr id="buku-{{ buku.id }}">
+                                <td>{{ buku.id }}</td>
+                                <td>{{ buku.nama }}</td>
+                                <td>{{ buku.pengarang }}</td>
+                                <td>{{ buku.jenis }}</td>
+                                <td>{{ buku.kategori }}</td>
+                                <td>{{ buku.penerbit }}</td>
+                                <td>{{ buku.th_terbit }}</td>
+                                <td>{{ buku.rating }}+</td> <td class="text-end">
+                                    <button class="btn btn-warning btn-sm"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editModal"
+                                            data-id="{{ buku.id }}"
+                                            data-nama="{{ buku.nama }}"
+                                            data-jenis="{{ buku.jenis }}"
+                                            data-kategori="{{ buku.kategori }}"
+                                            data-pengarang="{{ buku.pengarang }}"
+                                            data-penerbit="{{ buku.penerbit }}"
+                                            data-rating="{{ buku.rating }}"
+                                            data-th_terbit="{{ buku.th_terbit }}">
+                                        <i class="bi bi-pencil-fill"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="handleHapusBuku({{ buku.id }})">
+                                        <i class="bi bi-trash-fill"></i> Hapus
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center">Belum ada data buku.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="tambahModal" tabindex="-1" aria-labelledby="tambahModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tambahModalLabel">Formulir Tambah Buku</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="form-tambah-buku">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="tambah-nama" class="form-label">Nama Buku</label>
+                                    <input type="text" class="form-control" id="tambah-nama" >
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tambah-pengarang" class="form-label">Pengarang</label>
+                                    <input type="text" class="form-control" id="tambah-pengarang" >
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tambah-penerbit" class="form-label">Penerbit</label>
+                                    <input type="text" class="form-control" id="tambah-penerbit" >
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                
+                                <label for="tambah-jenis" class="form-label">Jenis</label>
+                                <select class="form-select" id="tambah-jenis" >
+                                    <option value="" disabled selected>Pilih Jenis</option>
+                                    <option value="fiksi">Fiksi</option>
+                                    <option value="non-fiksi">Non-Fiksi</option>
+                                </select>
+                                
+                                <label for="tambah-kategori" class="form-label">Kategori</label>
+                                <select class="form-select" id="tambah-kategori" >
+                                    <option value="" disabled selected>Pilih Kategori</option>
+                                    <option value="Komik">Komik</option>
+                                    <option value="Novel">Novel</option>
+                                    <option value="Bisnis">Bisnis</option>
+                                    <option value="Buku anak">Buku anak</option>
+                                    <option value="Sekolah">Sekolah</option>
+                                    <option value="Agama">Agama</option>
+                                    <option value="Umum">Umum</option>
+                                    <option value="Akutansi">Akuntansi</option>
+                                    <option value="Kesehatan">Kesehatan</option>
+                                    <option value="Geografi">Geografi</option>
+                                    <option value="Biografi">Biografi</option>
+                                    <option value="Sejarah">Sejarah</option>
+                                </select>
+
+                                <div class="mb-3">
+                                    <label for="tambah-th_terbit" class="form-label">Tahun Terbit (YYYY)</label>
+                                    <input type="number" class="form-control" id="tambah-th_terbit" placeholder="Contoh: 2024" >
+                                </div>
+                                
+                                <label for="tambah-rating" class="form-label">Rating Usia</label>
+                                <select class="form-select" id="tambah-rating" >
+                                    <option value="" disabled selected>Pilih Rating</option>
+                                    <option value="6">6+ (Anak-anak)</option>
+                                    <option value="13">13+ (Remaja)</option>
+                                    <option value="17">17+ (Dewasa)</option>
+                                    <option value="21">21+ (Dewasa Penuh)</option>
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-primary">Simpan Buku</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Formulir Edit Buku</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="form-edit-buku">
+                    <input type="hidden" id="edit-buku-id">
+                    
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="edit-nama" class="form-label">Nama Buku</label>
+                                    <input type="text" class="form-control" id="edit-nama">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit-pengarang" class="form-label">Pengarang</label>
+                                    <input type="text" class="form-control" id="edit-pengarang">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit-penerbit" class="form-label">Penerbit</label>
+                                    <input type="text" class="form-control" id="edit-penerbit" >
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                
+                                <label for="edit-jenis" class="form-label">Jenis</label>
+                                <select class="form-select" id="edit-jenis">
+                                    <option value="fiksi">Fiksi</option>
+                                    <option value="non-fiksi">Non-Fiksi</option>
+                                </select>
+                                
+                                <label for="edit-kategori" class="form-label">Kategori</label>
+                                <select class="form-select" id="edit-kategori">
+                                    <option value="Komik">Komik</option>
+                                    <option value="Novel">Novel</option>
+                                    <option value="Bisnis">Bisnis</option>
+                                    <option value="Buku anak">Buku anak</option>
+                                    <option value="Sekolah">Sekolah</option>
+                                    <option value="Agama">Agama</option>
+                                    <option value="Umum">Umum</option>
+                                    <option value="Akutansi">Akuntansi</option>
+                                    <option value="Kesehatan">Kesehatan</option>
+                                    <option value="Geografi">Geografi</option>
+                                    <option value="Biografi">Biografi</option>
+                                    <option value="Sejarah">Sejarah</option>
+                                </select>
+
+                                <div class="mb-3">
+                                    <label for="edit-th_terbit" class="form-label">Tahun Terbit (YYYY)</label>
+                                    <input type="number" class="form-control" id="edit-th_terbit" placeholder="Contoh: 2024" >
+                                </div>
+                                
+                                <label for="edit-rating" class="form-label">Rating Usia</label>
+                                <select class="form-select" id="edit-rating">
+                                    <option value="6">6+ (Anak-anak)</option>
+                                    <option value="13">13+ (Remaja)</option>
+                                    <option value="17">17+ (Dewasa)</option>
+                                    <option value="21">21+ (Dewasa Penuh)</option>
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        
+        // ----------------------------------------
+        // FUNGSI: Menangani Tambah Buku (Create)
+        // ----------------------------------------
+        document.getElementById('form-tambah-buku').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Mencegah form submit biasa
+
+            // Kumpulkan data dari form
+            const data = {
+                nama: document.getElementById('tambah-nama').value,
+                jenis: document.getElementById('tambah-jenis').value,
+                kategori: document.getElementById('tambah-kategori').value,
+                pengarang: document.getElementById('tambah-pengarang').value,
+                th_terbit: parseInt(document.getElementById('tambah-th_terbit').value),
+                penerbit: document.getElementById('tambah-penerbit').value,
+                rating: document.getElementById('tambah-rating').value // BARU: Ambil nilai string dari select
+            };
+
+            // Validasi select agar tidak kosong
+            if (!data.jenis || !data.kategori || !data.rating) {
+                alert('Harap pilih Jenis, Kategori, dan Rating.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/tambah_buku', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && !result.error) {
+                    alert('Buku berhasil ditambahkan!');
+                    location.reload(); // Muat ulang halaman untuk melihat data baru
+                } else {
+                    alert('Gagal menambahkan buku: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan koneksi.');
+            }
+        });
+
+        // ----------------------------------------
+        // FUNGSI: Menangani Hapus Buku (Delete)
+        // ----------------------------------------
+        async function handleHapusBuku(id) {
+            if (!confirm(`Yakin ingin menghapus buku dengan ID ${id}?`)) {
+                return; // Batalkan jika user klik "Cancel"
+            }
+
+            try {
+                const response = await fetch(`/hapus_buku/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (response.ok && !result.error) {
+                    alert('Buku berhasil dihapus!');
+                    location.reload(); // Muat ulang halaman
+                } else {
+                    alert('Gagal menghapus buku: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan koneksi.');
+            }
+        }
+
+        // ----------------------------------------
+        // FUNGSI: Menangani Edit Buku (Update)
+        // ----------------------------------------
+
+        // Bagian 1: Isi data ke modal SAAT modal dibuka
+        const editModal = document.getElementById('editModal');
+        editModal.addEventListener('show.bs.modal', function(event) {
+            // Tombol yang memicu modal
+            const button = event.relatedTarget;
+
+            // Ambil data dari atribut 'data-*' di tombol
+            const id = button.getAttribute('data-id');
+            const nama = button.getAttribute('data-nama');
+            const jenis = button.getAttribute('data-jenis');
+            const kategori = button.getAttribute('data-kategori');
+            const pengarang = button.getAttribute('data-pengarang');
+            const penerbit = button.getAttribute('data-penerbit');
+            const rating = button.getAttribute('data-rating');
+            const th_terbit = button.getAttribute('data-th_terbit');
+
+            // Masukkan data ke dalam form di modal
+            // JavaScript akan otomatis memilih <option> yang value-nya cocok
+            document.getElementById('edit-buku-id').value;
+            document.getElementById('edit-buku-id').value = id; // ID untuk URL (hidden)
+            document.getElementById('edit-nama').value = nama;
+            document.getElementById('edit-jenis').value = jenis;
+            document.getElementById('edit-kategori').value = kategori;
+            document.getElementById('edit-pengarang').value = pengarang;
+            document.getElementById('edit-penerbit').value = penerbit;
+            document.getElementById('edit-rating').value = rating;
+            document.getElementById('edit-th_terbit').value = th_terbit;
+        });
+
+        // Bagian 2: Kirim data SAAT form di-submit
+        document.getElementById('form-edit-buku').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            // Ambil ID buku dari hidden input
+            const buku_id = document.getElementById('edit-buku-id').value;
+
+            // Kumpulkan data dari form
+            const data = {
+                nama: document.getElementById('edit-nama').value,
+                jenis: document.getElementById('edit-jenis').value,
+                kategori: document.getElementById('edit-kategori').value,
+                pengarang: document.getElementById('edit-pengarang').value,
+                th_terbit: parseInt(document.getElementById('edit-th_terbit').value),
+                penerbit: document.getElementById('edit-penerbit').value,
+                rating: document.getElementById('edit-rating').value // BARU: Ambil nilai string dari select
+            };
+
+            try {
+                const response = await fetch(`/update_buku/${buku_id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && !result.error) {
+                    alert('Buku berhasil diperbarui!');
+                    location.reload(); // Muat ulang halaman
+                } else {
+                    alert('Gagal memperbarui buku: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan koneksi.');
+            }
+        });
+
+    </script>
+
+</body>
+</html>

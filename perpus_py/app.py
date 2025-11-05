@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import pymysql
+import pymysql.cursors
 
 app = Flask(__name__)
 
@@ -16,8 +17,14 @@ mysql = pymysql.connect(
 )
 
 @app.route('/')
-def test():
-    return 'Success'
+def index():
+    # Ambil data dari MySQL untuk ditampilkan saat halaman pertama kali dibuka
+    cur = mysql.cursor(pymysql.cursors.DictCursor) # dictionary=True agar mudah di-render
+    cur.execute("SELECT * FROM buku ORDER BY nama")
+    daftar_buku = cur.fetchall()
+    cur.close()
+
+    return render_template('index.html', daftar_buku=daftar_buku)
 
 @app.route('/tambah_buku', methods = ['POST'])
 def tambah_buku():
@@ -31,7 +38,6 @@ def tambah_buku():
         th_terbit = data['th_terbit']
         penerbit = data['penerbit']
         rating = data['rating']
-        id = data['id']
 
         cur = mysql.cursor()
         cur.execute('INSERT INTO buku (nama, jenis, kategori, pengarang, th_terbit, penerbit, rating, id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)', (nama, jenis, kategori, pengarang, th_terbit, penerbit, rating, id))
@@ -66,7 +72,7 @@ def get_buku():
         response = {
             'error' : False,
             'message': 'Berhasil di Ambil',
-            'data' : data
+            'data' : buku
         }
 
         return jsonify(response), 200
@@ -90,10 +96,23 @@ def update_buku(buku_id):
         th_terbit = data['th_terbit']
         penerbit = data['penerbit']
         rating = data['rating']
-        id = data['id']
 
         cur = mysql.cursor()
-        cur.execute('UPDATE buku SET (nama, jenis, kategori, pengarang, th_terbit, penerbit, rating, id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) WHERE id = $s', (nama, jenis, kategori, pengarang, th_terbit, penerbit, rating, id, buku_id))
+
+        query = """
+        UPDATE buku
+        SET nama = %s,
+            jenis = %s,
+            kategori = %s,
+            pengarang = %s,
+            th_terbit = %s,
+            penerbit = %s,
+            rating = %s
+        WHERE id = %s
+        """
+        params = nama, jenis, kategori, pengarang, th_terbit, penerbit, rating, buku_id
+
+        cur.execute(query, params)
 
         mysql.commit()
         cur.close()
@@ -113,11 +132,12 @@ def update_buku(buku_id):
         }
     return jsonify(response), 500
 
+
 @app.route('/hapus_buku/<int:buku_id>', methods = ['DELETE'])
 def hapus_buku(buku_id):
     try:
         cur = mysql.cursor()
-        cur.execute('DELETE * FROM buku WHERE id = $s')
+        cur.execute('DELETE FROM buku WHERE id = %s', (buku_id))
         mysql.commit()
         cur.close()
  
